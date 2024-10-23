@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mafe-service-prod
+  namespace: mafe-production  # Asegúrate de especificar el namespace si es necesario
+spec:
+  selector:
+    app: mafe-prod
+  ports:
+    - protocol: TCP
+      port: 3600
+      targetPort: 3600

@@ -1,0 +1,18 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-delay
+  namespace: mafe-production
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - mafe-production
+  delay:
+    latency: "300ms"
+  duration: "30s"
+
+
+#Aplicar para funcionar: kubectl apply -f network-chaos.yaml
+#Detener expermento: kubectl delete -f network-chaos.yaml

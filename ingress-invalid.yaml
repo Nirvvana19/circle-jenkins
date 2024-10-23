@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mafe-ingress-prod
+  namespace: mafe-production
+spec:
+  tls:
+  - hosts:
+    - mafe-prod.local
+    secretName: mafe-tls
+  rules:
+  - host: mafe-prod.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mafe-service-prod
+            port:
+              number: invalid-port-number  # Esto debe ser un número entero, no una cadena

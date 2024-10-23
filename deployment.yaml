@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mafe-production
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mafe-pv
+  namespace: mafe-production
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard  # Agrega este atributo para que coincida con el PVC
+  hostPath:
+    path: /home/maria-fernanda/volumen-mafe-prod  # Cambia esto a una ruta válida en tu máquina
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mafe-pvc
+  namespace: mafe-production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard  # Asegúrate de que el PVC tenga el mismo StorageClass
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mafe-deployment-prod
+  namespace: mafe-production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mafe-prod
+  template:
+    metadata:
+      labels:
+        app: mafe-prod
+    spec:
+      containers:
+        - name: mafe-prod
+          image: nirvana03/mafe-prod:latest  # Asegúrate de haber construido tu imagen
+          ports:
+            - containerPort: 3600
+          volumeMounts:
+            - mountPath: /app/data  # Ruta dentro del contenedor donde se montará el volumen
+              name: mafe-storage
+          livenessProbe:
+            httpGet:
+              path: /health  # Cambia esto si tu aplicación tiene un endpoint diferente
+              port: 3600     # Asegúrate de que coincida con el puerto de tu aplicación
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready   # Cambia esto si tu aplicación tiene un endpoint diferente
+              port: 3600     # Asegúrate de que coincida con el puerto de tu aplicación
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "256Mi"  # Cantidad mínima de memoria que necesita el pod
+              cpu: "500m"      # Cantidad mínima de CPU que necesita el pod
+            limits:
+              memory: "512Mi"  # Máximo de memoria que puede usar el pod
+              cpu: "1"         # Máximo de CPU que puede usar el pod
+      volumes:
+        - name: mafe-storage
+          hostPath:
+            path: /home/maria-fernanda/volumen-mafe-prod  # Ruta en tu máquina local

@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mafe-ingress-prod
+  namespace: mafe-production
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Cert-Manager solicitará certificados a Let's Encrypt
+spec:
+  tls:
+  - hosts:
+    - mafe-prod.local
+    secretName: mafe-tls  # Cert-Manager almacenará el certificado TLS aquí
+  rules:
+  - host: mafe-prod.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mafe-service-prod  # Nombre de tu servicio
+            port:
+              number: 3600  # Puerto del servicio
