@@ -11,7 +11,7 @@ app.use(express.static('public')); // Carpeta para archivos estáticos (e.g., im
 const getHomeMessage = (req, res) => {
     const welcomeMessage = `
         <h1>👋 Hola Soy Mafe!</h1>
-        <p>¡Bienvenida a tu aplicación Express!</p>
+        <p>¡Bienvenido a tu aplicación Express!</p>
         <p>Visita otras rutas para ver más contenido interactivo.</p>
         <p>Prueba: <a href="/about">Acerca de</a> o <a href="/contact">Contacto</a></p>
     `;
