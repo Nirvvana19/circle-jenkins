@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            docker build -t my-dockerhub-username/mafe-prod:$CIRCLE_SHA1 .
+            docker build -t nirvana03/mafe-prod:$CIRCLE_SHA1 .
 
       # Loguearse en Docker Hub usando las credenciales en las variables de entorno
       - run:
