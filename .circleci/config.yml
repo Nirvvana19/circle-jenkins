@@ -25,14 +25,13 @@ jobs:
             npm test || echo "No tests found"
 
       # Configurar Docker en CircleCI (habilitar Docker en jobs)
-      - setup_remote_docker:
-          version: 20.10.7  # Versión de Docker
+      - setup_remote_docker: {}  # CircleCI utilizará la versión predeterminada de Docker
 
       # Construir la imagen Docker
       - run:
           name: Build Docker Image
           command: |
-            docker build -t nirvana03/mafe-prod:$CIRCLE_SHA1 .
+            docker build -t nirvana03/mafe-prod:latest .
 
       # Loguearse en Docker Hub usando las credenciales en las variables de entorno
       - run:
@@ -44,7 +43,7 @@ jobs:
       - run:
           name: Push Docker Image to Docker Hub
           command: |
-            docker push nirvana03/mafe-prod:$CIRCLE_SHA1
+            docker push nirvana03/mafe-prod:latest
 
   deploy:
     executor: node-executor
