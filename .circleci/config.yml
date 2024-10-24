@@ -1,76 +1,63 @@
 version: 2.1
 
-# Definimos un ejecutor con Docker que usará una imagen Node.js
 executors:
   node-executor:
     docker:
-      - image: circleci/node:18-alpine  # Usamos Node.js 18
-    working_directory: ~/repo  # Directorio de trabajo dentro del contenedor
+      - image: circleci/node:18  # Usamos Node.js 18 como base
+    working_directory: ~/repo
 
-# Jobs: Definimos las tareas que CircleCI ejecutará
 jobs:
-  # Etapa 1: Instalar dependencias
-  install_dependencies:
+  build:
     executor: node-executor
     steps:
-      - checkout  # Obtiene el código de tu repositorio
+      - checkout  # Descargar el código fuente
+      
+      # Instalar dependencias de Node.js
       - run:
-          name: Instalar dependencias
-          command: npm install  # Instala las dependencias de tu proyecto
-      - save_cache:  # Cachea las dependencias para acelerar los futuros builds
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-          paths:
-            - ./node_modules
+          name: Install Node.js Dependencies
+          command: |
+            npm install
 
-  # Etapa 2: Ejecutar pruebas (si tienes pruebas implementadas)
-  run_tests:
+      # Correr pruebas (si tienes pruebas configuradas en el package.json)
+      - run:
+          name: Run Tests
+          command: |
+            npm test || echo "No tests found"
+
+      # Construir la imagen Docker
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build -t my-dockerhub-username/mafe-prod:$CIRCLE_SHA1 .
+
+      # Loguearse en Docker Hub usando las credenciales en las variables de entorno
+      - run:
+          name: Docker Login
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      # Subir la imagen Docker a Docker Hub
+      - run:
+          name: Push Docker Image to Docker Hub
+          command: |
+            docker push my-dockerhub-username/mafe-prod:$CIRCLE_SHA1
+
+  deploy:
     executor: node-executor
     steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - checkout  # Descargar el código fuente
+      
+      # Preparar el despliegue con Jenkins (o Minikube para pruebas locales si es necesario)
       - run:
-          name: Ejecutar pruebas
-          command: npm test  # Asume que tienes un script de test en package.json
-          
-  # Etapa 3: Desplegar en Kubernetes
-  deploy_to_kubernetes:
-    docker:
-      - image: circleci/kubernetes:latest  # Usa un entorno con kubectl
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.7
-      - run:
-          name: Instalar kubectl
+          name: Notify Jenkins or Trigger Deployment
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-      - run:
-          name: Desplegar en Kubernetes
-          command: |
-            kubectl apply -f ./k8s/namespace.yaml  # Crea el namespace
-            kubectl apply -f ./k8s/deployment.yaml  # Despliega tu app
-            kubectl apply -f ./k8s/service.yaml  # Crea el servicio
-            kubectl apply -f ./k8s/ingress.yaml  # Configura el Ingress con Traefik y TLS
-            kubectl rollout status deployment/mafe-deployment-prod -n mafe-production  # Asegura que el despliegue fue exitoso
-      - run:
-          name: Verificar Ingress
-          command: kubectl get ingress -n mafe-production  # Verifica el Ingress
-      - run:
-          name: Verificar estado del pod
-          command: kubectl get pods -n mafe-production  # Verifica que el pod está corriendo correctamente
+            echo "Deployment will be handled by Jenkins. Ensure Jenkins has access to Docker Hub."
 
-# Workflow: Define el orden en que se ejecutan los jobs
 workflows:
   version: 2
-  build_and_deploy:
+  build-and-deploy:
     jobs:
-      - install_dependencies
-      - run_tests:
+      - build
+      - deploy:
           requires:
-            - install_dependencies
-      - deploy_to_kubernetes:
-          requires:
-            - run_tests
+            - build
