@@ -3,7 +3,7 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: circleci/node:18  # Usamos Node.js 18 como base
+      - image: node:18-alpine  # Usamos Node.js 18 como base
     working_directory: ~/repo
 
 jobs:
