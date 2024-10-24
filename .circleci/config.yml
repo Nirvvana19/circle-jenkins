@@ -18,13 +18,13 @@ jobs:
           command: |
             npm install
 
-      # Correr pruebas (si tienes pruebas configuradas en el package.json)
+      # Instalar Docker en el contenedor
       - run:
-          name: Run Tests
+          name: Install Docker
           command: |
-            npm test || echo "No tests found"
+            apk add --no-cache docker
 
-      # Configurar Docker en CircleCI (habilitar Docker en jobs)
+      # Habilitar Docker en CircleCI
       - setup_remote_docker: {}  # CircleCI utilizará la versión predeterminada de Docker
 
       # Loguearse en Docker Hub usando las credenciales en las variables de entorno
@@ -44,6 +44,7 @@ jobs:
           name: Push Docker Image to Docker Hub
           command: |
             docker push nirvana03/mafe-prod:latest
+
 
   deploy:
     executor: node-executor
