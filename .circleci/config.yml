@@ -27,20 +27,17 @@ jobs:
       # Configurar Docker en CircleCI (habilitar Docker en jobs)
       - setup_remote_docker: {}  # CircleCI utilizará la versión predeterminada de Docker
 
-  
       # Loguearse en Docker Hub usando las credenciales en las variables de entorno
       - run:
           name: Docker Login
           command: |
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-
       # Construir la imagen Docker
       - run:
           name: Build Docker Image
           command: |
             docker build -t nirvana03/mafe-prod:latest .
-
 
       # Subir la imagen Docker a Docker Hub
       - run:
